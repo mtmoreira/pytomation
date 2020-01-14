@@ -42,6 +42,10 @@ class DirFileObjTest(unittest.TestCase):
 		with self.assertRaises(TypeError):
 			DirFileObj(path=0)
 
+	def test_constructorPathInvalidFileDir(self):
+		with self.assertRaises(RuntimeError):
+			DirFileObj(path="invalid/invalid/invalid")
+
 	def test_constructorPath(self):
 		dirPath = os.path.realpath(self.rootFolder+"fileTypes/dirExample")
 		d = DirFileObj(path=dirPath)

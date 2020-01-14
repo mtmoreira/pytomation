@@ -42,6 +42,8 @@ class BaseFileObj(ABC):
 
 		# Constructor takes either the path or name+father
 		if path == "":
+			# No file dir in this case
+			fileDir = ""
 			if name == "" or father == self:
 				raise RuntimeError("Read invalid parameters. Constructor takes either the path or name+father.")
 			# In this case, validate that first father is root
@@ -55,7 +57,7 @@ class BaseFileObj(ABC):
 		else:
 			if name != "" or father != self:
 				raise RuntimeError("Read invalid parameters. Constructor takes either the path or name+father.")
-			## In this case, get name from path and remove it from path
+			## In this case, get name and fileDir from path
 			# First remove any trailing /
 			path = re.sub("[/]*$", "", path)
 			# Then create regexp to isolate name
@@ -63,26 +65,29 @@ class BaseFileObj(ABC):
 			nameRegexp = re.compile(nameRegexp)
 			# Look for name in path
 			nameMatch = nameRegexp.match(path)
-			# If found, get name and path
+			# If found, get name and fileDir
 			if nameMatch:
-				# Update path and remove any trailing /
-				path = nameMatch.group(1)
-				path = re.sub("[/]*$", "", path)
+				# Update fileDir and remove any trailing /
+				fileDir = nameMatch.group(1)
+				fileDir = re.sub("[/]*$", "", fileDir)
 				# Update name
 				name = nameMatch.group(2)
+				# Make sure fileDir exists
+				if not os.path.exists(fileDir):
+					raise RuntimeError("Failed to create file with inexistent fileDir %s." % fileDir)
 			else:
-				raise RuntimeError("Failed to extract name and path from %s." % path)
+				raise RuntimeError("Failed to extract name and fileDir from path %s." % path)
 
 		# Store attributes name
-		self.__name   = name
-		self.__path   = path
-		self.__father = father
+		self.__name    = name
+		self.__fileDir = fileDir
+		self.__father  = father
 
 		# Check if file exists
 		try:
 			checkPath = os.path.exists(self.path)
 		except Exception as e:
-			raise RuntimeError("Error trying to check if path %s exists: %s" % (self.__path,str(e)))
+			raise RuntimeError("Error trying to check if path %s exists: %s" % (self.__fileDir ,str(e)))
 
 		# If exists, read file in
 		if checkPath:
@@ -109,7 +114,7 @@ class BaseFileObj(ABC):
 	def path(self):
 		# Get path
 		if self.isRoot():
-			path = self.__path
+			path = self.__fileDir
 		else:
 			path = self.father.path
 		# Add name
@@ -187,18 +192,18 @@ class BaseFileObj(ABC):
 			raise TypeError("Parameter father must be a BaseFileObj")
 
 		# Store prev name and father to backup later
-		prevName = self.name
-		prevPath = self.path
-		prevFather = self.father
+		prevName   = self.__name
+		prevDir    = self.__fileDir
+		prevFather = self.__father
 		# Update name and father to create copy
 		self.__name   = name
-		self.__path   = ""
+		self.__fileDir    = ""
 		self.__father = father
 		# Create a copy
 		objCopy = cp.copy(self)
 		# Restore attributes
 		self.__name   = prevName
-		self.__path   = prevPath
+		self.__fileDir    = prevDir
 		self.__father = prevFather
 
 		# Update father with new copy
