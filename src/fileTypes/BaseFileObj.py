@@ -154,7 +154,7 @@ class BaseFileObj(ABC):
 	def _readFile(self):
 		return NotImplemented
 
-	## Write method. Makes required checks and then calls _writeFile method to 
+	## Write method. Makes required checks and then calls _writeFile method to
 	# handle different file type writes
 	#
 	# \param  self Instance of BaseFileObj class.
@@ -215,27 +215,3 @@ class BaseFileObj(ABC):
 	@abstractmethod
 	def _copyFile(self):
 		return NotImplemented
-
-
-	# ## printFile method. Must be specialized by inheriting classes.
-	# #
-	# # \param  self Instance of BaseFileObj class.
-	# @abstractmethod
-	# def printFile(self):
-	# 	return NotImplemented
-
-	# ## Sets path.
-	# #
-	# # \param self Instance of BaseFileObj class.
-	# # \param newPath String to be used
-	# @path.setter
-	# def path(self, newPath):
-	# 	# Locked files cannot be editted
-	# 	if self.isLocked():
-	# 		raise RuntimeError("Tried to set path of locked object with path %s" % self.path)
-	# 	# Checks input
-	# 	if not isinstance(newPath, str):
-	# 		raise TypeError("Parameter newPath must be a string")
-	# 	self.__path = newPath
-
-	## Locks file

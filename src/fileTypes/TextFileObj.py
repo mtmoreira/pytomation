@@ -8,6 +8,7 @@
 # 1.0      | Matheus T. M.     | 01/12/20 | Initial version
 #
 
+import os
 from BaseFileObj import BaseFileObj
 
 class TextFileObj(BaseFileObj):
@@ -37,6 +38,11 @@ class TextFileObj(BaseFileObj):
 	#
 	# \param  self Instance of TextFileObj class.
 	def _writeFile(self):
+		# Check if folder exists
+		path = self.path
+		path = path.replace(self.name, "")
+		if not os.path.exists(path):
+			raise RuntimeError("Tried to write a file in invalid location %s" % path)
 		# Create file
 		with open(self.path, "w") as file:
 			for line in self.__lineList:

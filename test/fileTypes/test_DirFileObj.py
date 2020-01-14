@@ -128,16 +128,14 @@ class DirFileObjTest(unittest.TestCase):
 		self.assertEqual(f.getStr(),expectedFileContent)
 
 	def test_constructorWithFatherNameTypeError(self):
-		dirName = "tmpDir"
 		rootD = DirFileObj(path=self.testFolder)
 		with self.assertRaises(TypeError):
-			newD0 = DirFileObj(name=0, father=rootD)
+			DirFileObj(name=0, father=rootD)
 
 	def test_constructorWithFatherFatherTypeError(self):
 		dirName = "tmpDir"
-		rootD = DirFileObj(path=self.testFolder)
 		with self.assertRaises(TypeError):
-			newD0 = DirFileObj(name=dirName, father=0)
+			DirFileObj(name=dirName, father=0)
 
 	def test_constructorWithFatherFileAsFather(self):
 		dirName = "tmpDir"
@@ -145,14 +143,14 @@ class DirFileObjTest(unittest.TestCase):
 		d = DirFileObj(path=dirPath)
 		f = d.getFile("file0.txt")
 		with self.assertRaises(RuntimeError):
-			newD = DirFileObj(name=dirName, father=f)
+			DirFileObj(name=dirName, father=f)
 
 	def test_constructorWithFatherAlreadyHasDir(self):
 		dirName = "tmpDir"
 		rootD = DirFileObj(path=self.testFolder)
-		newD0 = DirFileObj(name=dirName, father=rootD)
+		DirFileObj(name=dirName, father=rootD)
 		with self.assertRaises(RuntimeError):
-			newD1 = DirFileObj(name=dirName, father=rootD)
+			DirFileObj(name=dirName, father=rootD)
 
 	def test_constructorWithFather(self):
 		dirName = "tmpDir"
@@ -179,14 +177,14 @@ class DirFileObjTest(unittest.TestCase):
 	def test_getDirTypeError(self):
 		dirName = "tmpDir"
 		rootD = DirFileObj(path=self.testFolder)
-		newD0 = DirFileObj(name=dirName, father=rootD)
+		DirFileObj(name=dirName, father=rootD)
 		with self.assertRaises(TypeError):
 			rootD.getDir(0)
 
 	def test_getDirInvalid(self):
 		dirName = "tmpDir"
 		rootD = DirFileObj(path=self.testFolder)
-		newD0 = DirFileObj(name=dirName, father=rootD)
+		DirFileObj(name=dirName, father=rootD)
 		with self.assertRaises(ValueError):
 			rootD.getDir("invalid")
 
@@ -194,7 +192,7 @@ class DirFileObjTest(unittest.TestCase):
 		dirName = "tmpDir"
 		rootD = DirFileObj(path=self.testFolder)
 		newD0 = DirFileObj(name=dirName, father=rootD)
-		newD1 = DirFileObj(name=dirName, father=newD0)
+		DirFileObj(name=dirName, father=newD0)
 		d = rootD.getDir(dirName)
 		self.assertEqual(d.name,dirName)
 		self.assertEqual(d.getDirList(),[dirName])
@@ -203,21 +201,18 @@ class DirFileObjTest(unittest.TestCase):
 
 	# Getting files
 	def test_getFileTypeError(self):
-		dirName = "tmpDir"
 		dirPath = os.path.realpath(self.rootFolder+"fileTypes/dirExample")
 		d = DirFileObj(path=dirPath)
 		with self.assertRaises(TypeError):
 			d.getFile(0)
 
 	def test_getFileInvalid(self):
-		dirName = "tmpDir"
 		dirPath = os.path.realpath(self.rootFolder+"fileTypes/dirExample")
 		d = DirFileObj(path=dirPath)
 		with self.assertRaises(ValueError):
 			d.getFile("invalid")
 
 	def test_getFile(self):
-		dirName = "tmpDir"
 		dirPath = os.path.realpath(self.rootFolder+"fileTypes/dirExample")
 		d = DirFileObj(path=dirPath)
 		f = d.getFile("file0.txt")
