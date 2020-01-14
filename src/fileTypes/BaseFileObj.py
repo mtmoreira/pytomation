@@ -178,6 +178,7 @@ class BaseFileObj(ABC):
 	# \param self Instance of BaseFileObj class.
 	# \param name String with name of file
 	# \param father BaseFileObj that is the father of this file
+	# \return Created copy
 	def copy(self, name, father):
 		# Validate input types
 		if not isinstance(name, str):
@@ -203,12 +204,16 @@ class BaseFileObj(ABC):
 		# Update father with new copy
 		father._isNewFather(kid=objCopy)
 
+		# Execute specialized copy method
+		objCopy._copyFile()
+
+		return objCopy
+
 	## Protected _copyFile method. Must be specialized by inheriting classes.
 	#
 	# \param self Instance of BaseFileObj class.
-	# \param objCopy BaseFileObj that is the new copy created
 	@abstractmethod
-	def _copyFile(self, objCopy):
+	def _copyFile(self):
 		return NotImplemented
 
 

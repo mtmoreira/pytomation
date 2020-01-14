@@ -57,8 +57,7 @@ class TextFileObj(BaseFileObj):
 	## Private _copyFile method.
 	#
 	# \param  self Instance of TextFileObj class.
-	# \param objCopy BaseFileObj that is the new copy created
-	def _copyFile(self, objCopy):
+	def _copyFile(self):
 		# Nothing to do here
 		pass
 

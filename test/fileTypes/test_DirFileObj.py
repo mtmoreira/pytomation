@@ -225,14 +225,15 @@ class DirFileObjTest(unittest.TestCase):
 
 	# Copying directories
 	def test_copy(self):
+		copyName = "objCopy"
 		dirPath = os.path.realpath(self.rootFolder+"fileTypes/dirExample")
 		rootD = DirFileObj(path=self.testFolder)
 		d = DirFileObj(path=dirPath)
 		# Create a copy to test folder
-		d.copy(name="objCopy", father=rootD)
+		d.copy(name=copyName, father=rootD)
 		# Check contents
-		self.assertEqual(rootD.getDirList(),["objCopy"])
-		d = rootD.getDir("objCopy")
+		self.assertEqual(rootD.getDirList(),[copyName])
+		d = rootD.getDir(copyName)
 		self.assertEqual(d.getFileList(),["file0.txt"])
 		f = d.getFile("file0.txt")
 		expectedFileContent  = "Sample File\n"
@@ -258,3 +259,29 @@ class DirFileObjTest(unittest.TestCase):
 		# Check actual folder in filesys
 		self.assertEqual(os.listdir(self.testFolder),[])
 		rootD.write()
+		self.assertEqual(sorted(os.listdir(self.testFolder+"/"+copyName)),["file0.txt", "subdirExample"])
+		self.assertEqual(sorted(os.listdir(self.testFolder+"/"+copyName+"/subdirExample")),["fileSub.txt"])
+		# Read new files
+		d = DirFileObj(path=self.testFolder+"/"+copyName)
+		self.assertEqual(d.getFileList(),["file0.txt"])
+		f = d.getFile("file0.txt")
+		expectedFileContent  = "Sample File\n"
+		expectedFileContent += "\n"
+		expectedFileContent += "With\n"
+		expectedFileContent += "\n"
+		expectedFileContent += "5 lines of text\n"
+		expectedFileContent += ""
+		self.assertEqual(f.getStr(),expectedFileContent)
+		d = d.getDir("subdirExample")
+		self.assertEqual(d.getDirList(),[])
+		self.assertEqual(d.getFileList(),["fileSub.txt"])
+		f = d.getFile("fileSub.txt")
+		expectedFileContent  = "Sample File\n"
+		expectedFileContent += "\n"
+		expectedFileContent += "For Regexp For Regexp For Regexp\n"
+		expectedFileContent += "\n"
+		expectedFileContent += "For Regexp\n"
+		expectedFileContent += "\n"
+		expectedFileContent += "MyRegexp\n"
+		expectedFileContent += ""
+		self.assertEqual(f.getStr(),expectedFileContent)

@@ -101,14 +101,19 @@ class DirFileObj(BaseFileObj):
 	## Private _copyFile method.
 	#
 	# \param  self Instance of TextFileObj class.
-	# \param objCopy BaseFileObj that is the new copy created
-	def _copyFile(self, objCopy):
+	def _copyFile(self):
+		# Copy old dictionaries
+		oldFileDict = self.__fileDict
+		oldDirDict = self.__dirDict
+		# Initialize new dictionaries
+		self.__fileDict = {}
+		self.__dirDict = {}
 		# Copies all files it contains
-		for fileName in self.getFileList():
-			self.__fileDict[fileName].copy(name=fileName, father=objCopy)
+		for fileName in oldFileDict.keys():
+			self.__fileDict[fileName]=oldFileDict[fileName].copy(name=fileName, father=self)
 		# Copies all dirs it contains
-		for dirName in self.getDirList():
-			self.__dirDict[dirName].copy(name=dirName, father=objCopy)
+		for dirName in oldDirDict.keys():
+			self.__dirDict[dirName]=oldDirDict[dirName].copy(name=dirName, father=self)
 
 	## Gets a list of directories contained in this directory.
 	#
