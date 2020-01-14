@@ -11,62 +11,35 @@
 from BaseFileObj import BaseFileObj
 
 class TextFileObj(BaseFileObj):
+
 	## Constructor
 	#
 	# Create the object depending on the
 	#
-	# \param path String with path of file
-	# \param oper String with operation to be done.
-	# \param self Instance of TextFileObj class.
-	def __init__(self, path, oper):
-		# Initialize file line list
+	# \param self Instance of BaseFileObj class.
+	# \param path Optional String with path of file
+	# \param name Optional String with name of file
+	# \param father Optional BaseFileObj that is the father of this file
+	def __init__(self, path="", name="", father=None):
+		# Initializes its line list
 		self.__lineList = []
-		super(TextFileObj, self).__init__(path=path, oper=oper)
+		# Calls super constructor
+		super(TextFileObj, self).__init__(path=path, name=name, father=father)
 
-	## Access lines of file as a list.
+	## Protected _isNewFather method
 	#
-	# \param  self Instance of TextFileObj class.
-	# \return List of string.
-	@property
-	def lineList(self):
-		return self.__lineList
-
-	## Gets number of lines.
-	#
-	# \param  self Instance of TextFileObj class.
-	# \return Integer.
-	@property
-	def lineCount(self):
-		return len(self.__lineList)
-
-	## Prints info about file
-	#
-	# \param  self Instance of TextFileObj class.
-	def printFile(self):
-		for line in self.__lineList:
-			print(line)
-
-	## Private _copyFile method.
-	#
-	# \param  self Instance of TextFileObj class.
-	# \param newPath String defining path of copied object
-	def _copyFile(self, newPath):
-		# Checks input
-		if not isinstance(newPath, str):
-			raise TypeError("Parameter newPath must be a string")
-		# Nothing to be done
-		pass
+	# \param self Instance of TextFileObj class.
+	# \param kid Instance of BaseFileObj class.
+	def _isNewFather(self, kid):
+		raise RuntimeError("TextFileObj cannot be a father")
 
 	## Private _writeFile method.
 	#
 	# \param  self Instance of TextFileObj class.
 	def _writeFile(self):
-		# Check if writtable
-		if self.isLocked():
-			raise RuntimeError("Tried to write in locked file %s" % self.path)
 		# Create file
 		with open(self.path, "w") as file:
-			for line in self.lineList:
+			for line in self.__lineList:
 				file.write(line+"\n")
 		file.close()
 
@@ -81,11 +54,19 @@ class TextFileObj(BaseFileObj):
 				self.__lineList.append(fileLine.strip())
 				fileLine = file.readline()
 
+	## Private _copyFile method.
+	#
+	# \param  self Instance of TextFileObj class.
+	# \param objCopy BaseFileObj that is the new copy created
+	def _copyFile(self, objCopy):
+		# Nothing to do here
+		pass
+
 	## Substitutes a string in file
 	#
+	# \param self Instance of TextFileObj class.
 	# \param findStr String to be replaced.
 	# \param replaceStr String used in replacement.
-	# \param self Instance of TextFileObj class.
 	def strSub(self, findStr, replaceStr):
 		# Checks inputs
 		if not isinstance(findStr, str):
@@ -97,5 +78,13 @@ class TextFileObj(BaseFileObj):
 			# Update line
 			self.__lineList[idx] = line.replace(findStr, replaceStr)
 
-		# Writes file
-		self.write()
+	## Returns a string with contents of file.
+	#
+	# \param  self Instance of TextFileObj class.
+	# \return String
+	def getStr(self):
+		returnStr = ""
+		for line in self.__lineList:
+			returnStr += line + "\n"
+
+		return returnStr

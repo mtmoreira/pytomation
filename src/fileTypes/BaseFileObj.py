@@ -9,56 +9,97 @@
 #
 
 import os
-import copy
+import re
+import copy as cp
 from abc import ABC, abstractmethod
 
 class BaseFileObj(ABC):
-	operationLabelWrite = "w"
-	operationLabelRead  = "r"
 
 	## Constructor
 	#
 	# Create the object depending on the
 	#
-	# \param path String with path of file
-	# \param oper String with operation to be done.
+	# \param path Optional String with path of file
+	# \param name Optional String with name of file
+	# \param father Optional BaseFileObj that is the father of this file
 	# \param self Instance of BaseFileObj class.
-	def __init__(self, path, oper):
+	def __init__(self, path="", name="", father=None):
+
+		# Default father is self
+		if father is None:
+			father = self
+
+		# Calls super constructor
 		super(BaseFileObj, self).__init__()
-		# Validate inputs
+
+		# Validate input types
+		if not isinstance(name, str):
+			raise TypeError("Parameter name must be a string")
 		if not isinstance(path, str):
 			raise TypeError("Parameter path must be a string")
-		if not isinstance(oper, str):
-			raise TypeError("Parameter oper must be a string with valid option. Valid options are: %s and %s" % (self.operationLabelWrite, self.operationLabelRead))
-		if not (oper == self.operationLabelRead or oper == self.operationLabelWrite):
-			raise ValueError("Parameter oper must be a string with valid option. Valid options are: %s and %s" % (self.operationLabelWrite, self.operationLabelRead))
+		if not isinstance(father, BaseFileObj):
+			raise TypeError("Parameter father must be a BaseFileObj")
 
-		# Store file path
-		self.__path = path
+		# Constructor takes either the path or name+father
+		if path == "":
+			if name == "" or father == self:
+				raise RuntimeError("Read invalid parameters. Constructor takes either the path or name+father.")
+			# In this case, validate that first father is root
+			currObj = self
+			fatherObj = father
+			while currObj != fatherObj:
+				currObj = fatherObj
+				fatherObj = currObj.father
+			if not fatherObj.isRoot():
+				raise RuntimeError("Couldnt find a root father when trying to create new object.")
+		else:
+			if name != "" or father != self:
+				raise RuntimeError("Read invalid parameters. Constructor takes either the path or name+father.")
+			## In this case, get name from path and remove it from path
+			# First remove any trailing /
+			path = re.sub("[/]*$", "", path)
+			# Then create regexp to isolate name
+			nameRegexp = "(.*)/([^/]+)"
+			nameRegexp = re.compile(nameRegexp)
+			# Look for name in path
+			nameMatch = nameRegexp.match(path)
+			# If found, get name and path
+			if nameMatch:
+				# Update path and remove any trailing /
+				path = nameMatch.group(1)
+				path = re.sub("[/]*$", "", path)
+				# Update name
+				name = nameMatch.group(2)
+			else:
+				raise RuntimeError("Failed to extract name and path from %s." % path)
+
+		# Store attributes name
+		self.__name   = name
+		self.__path   = path
+		self.__father = father
+
 		# Check if file exists
 		try:
-			checkPath = os.path.exists(self.__path)
+			checkPath = os.path.exists(self.path)
 		except Exception as e:
 			raise RuntimeError("Error trying to check if path %s exists: %s" % (self.__path,str(e)))
 
-		# If write
-		if oper == self.operationLabelWrite:
-			# Initialize file as unlocked
-			self.__lock = False
-			# If file exists
-			if checkPath:
-				raise RuntimeError("Error trying to write path %s. File already exists." % self.__path)
-			# Call write method
-			self.write()
-		# If read
-		else:
-			# Initialize file as locked to avoid writing
-			self.__lock = True
-			# If file doesnt exist
-			if not checkPath:
-				raise RuntimeError("Error trying to read path %s. File does not exist." % self.__path)
+		# If exists, read file in
+		if checkPath:
 			# Call read method
-			self.read()
+			self.__read()
+
+		# If not root, update its father
+		if not self.isRoot():
+			self.father._isNewFather(kid=self)
+
+	## Gets name.
+	#
+	# \param  self Instance of BaseFileObj class.
+	# \return String.
+	@property
+	def name(self):
+		return self.__name
 
 	## Gets path.
 	#
@@ -66,90 +107,44 @@ class BaseFileObj(ABC):
 	# \return String.
 	@property
 	def path(self):
-		return self.__path
+		# Get path
+		if self.isRoot():
+			path = self.__path
+		else:
+			path = self.father.path
+		# Add name
+		path = path + "/" + self.name
+		return path
 
-	## Sets path.
+	## Gets father.
 	#
-	# \param self Instance of BaseFileObj class.
-	# \param newPath String to be used
-	@path.setter
-	def path(self, newPath):
-		# Locked files cannot be editted
-		if self.isLocked():
-			raise RuntimeError("Tried to set path of locked object with path %s" % self.path)
-		# Checks input
-		if not isinstance(newPath, str):
-			raise TypeError("Parameter newPath must be a string")
-		self.__path = newPath
+	# \param  self Instance of BaseFileObj class.
+	# \return String.
+	@property
+	def father(self):
+		return self.__father
 
-	## Checks if file is locked.
+	## Checks if file is root.
 	#
 	# \param  self Instance of BaseFileObj class.
 	# \return Boolean.
-	def isLocked(self):
-		return self.__lock
+	def isRoot(self):
+		# Root files dont have a father
+		return (self.father == self)
 
-	## Locks file
-	#
-	# \param  self Instance of BaseFileObj class.
-	def lock(self):
-		self.__lock = True
-
-	## Copies file, creating new file and returning unlocked copied object
+	## Protected _isNewFather method. Must be specialized by inheriting classes.
 	#
 	# \param self Instance of BaseFileObj class.
-	# \param newPath String defining path of copied object
-	# \return BaseFileObj specialized class with copy
-	def copyFile(self, newPath):
-		# Can only copy locked files
-		if not self.isLocked():
-			raise RuntimeError("Only locked files can be copied")
-		# Checks input
-		if not isinstance(newPath, str):
-			raise TypeError("Parameter newPath must be a string")
-		# Unlocks cell
-		self.__lock = False
-		# Create a copy of this object
-		cpFile = copy.deepcopy(self)
-		# Locks cell
-		self.__lock = True
-		# Adjust path of object
-		cpFile.path = newPath
-		# Write file
-		cpFile.write()
-		# Call specialized copy method
-		cpFile._copyFile(newPath=newPath)
-		# Return object
-		return cpFile
-
-	## Protected _copyFile method. Must be specialized by inheriting classes.
-	#
-	# \param  self Instance of BaseFileObj class.
-	# \param newPath String defining path of copied object
+	# \param kid Instance of BaseFileObj class.
 	@abstractmethod
-	def _copyFile(self, newPath):
+	def _isNewFather(self, kid):
 		return NotImplemented
 
-	## Write method. Makes required checks and then calls _writeFile method.
+	## Private read method. Calls specialized _readFile method to handle different
+	# file type reads
 	#
 	# \param  self Instance of BaseFileObj class.
-	def write(self):
-		# Cant write locked objects
-		if self.isLocked():
-			raise RuntimeError("Cannot write locked files")
-		self._writeFile()
-
-	## Protected _writeFile method. Must be specialized by inheriting classes.
-	#
-	# \param  self Instance of BaseFileObj class.
-	@abstractmethod
-	def _writeFile(self):
-		return NotImplemented
-
-	## Read method. Makes required checks and then calls _readFile method.
-	#
-	# \param  self Instance of BaseFileObj class.
-	def read(self):
+	def __read(self):
 		self._readFile()
 
 	## Protected readFile method. Must be specialized by inheriting classes.
@@ -159,9 +154,83 @@ class BaseFileObj(ABC):
 	def _readFile(self):
 		return NotImplemented
 
-	## printFile method. Must be specialized by inheriting classes.
+	## Write method. Makes required checks and then calls _writeFile method to 
+	# handle different file type writes
+	#
+	# \param  self Instance of BaseFileObj class.
+	def write(self):
+		# Checks before writing
+		if self.isRoot() and self.path == "":
+			raise RuntimeError("Unexpected error found while trying to write root file. No path found.")
+		self._writeFile()
+
+	## Protected _writeFile method. Must be specialized by inheriting classes.
 	#
 	# \param  self Instance of BaseFileObj class.
 	@abstractmethod
-	def printFile(self):
+	def _writeFile(self):
 		return NotImplemented
+
+	## Copy method.
+	#
+	# Copies file to new path or father
+	#
+	# \param self Instance of BaseFileObj class.
+	# \param name String with name of file
+	# \param father BaseFileObj that is the father of this file
+	def copy(self, name, father):
+		# Validate input types
+		if not isinstance(name, str):
+			raise TypeError("Parameter name must be a string")
+		if not isinstance(father, BaseFileObj):
+			raise TypeError("Parameter father must be a BaseFileObj")
+
+		# Store prev name and father to backup later
+		prevName = self.name
+		prevPath = self.path
+		prevFather = self.father
+		# Update name and father to create copy
+		self.__name   = name
+		self.__path   = ""
+		self.__father = father
+		# Create a copy
+		objCopy = cp.copy(self)
+		# Restore attributes
+		self.__name   = prevName
+		self.__path   = prevPath
+		self.__father = prevFather
+
+		# Update father with new copy
+		father._isNewFather(kid=objCopy)
+
+	## Protected _copyFile method. Must be specialized by inheriting classes.
+	#
+	# \param self Instance of BaseFileObj class.
+	# \param objCopy BaseFileObj that is the new copy created
+	@abstractmethod
+	def _copyFile(self, objCopy):
+		return NotImplemented
+
+
+	# ## printFile method. Must be specialized by inheriting classes.
+	# #
+	# # \param  self Instance of BaseFileObj class.
+	# @abstractmethod
+	# def printFile(self):
+	# 	return NotImplemented
+
+	# ## Sets path.
+	# #
+	# # \param self Instance of BaseFileObj class.
+	# # \param newPath String to be used
+	# @path.setter
+	# def path(self, newPath):
+	# 	# Locked files cannot be editted
+	# 	if self.isLocked():
+	# 		raise RuntimeError("Tried to set path of locked object with path %s" % self.path)
+	# 	# Checks input
+	# 	if not isinstance(newPath, str):
+	# 		raise TypeError("Parameter newPath must be a string")
+	# 	self.__path = newPath
+
+	## Locks file
