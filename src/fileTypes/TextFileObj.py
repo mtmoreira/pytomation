@@ -9,6 +9,7 @@
 #
 
 import os
+import copy
 from BaseFileObj import BaseFileObj
 
 class TextFileObj(BaseFileObj):
@@ -64,8 +65,8 @@ class TextFileObj(BaseFileObj):
 	#
 	# \param  self Instance of TextFileObj class.
 	def _copyFile(self):
-		# Nothing to do here
-		pass
+		# Make a hard copy of old line list
+		self.__lineList = copy.deepcopy(self.__lineList)
 
 	## Substitutes a string in file
 	#

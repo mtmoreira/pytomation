@@ -194,3 +194,31 @@ class TextFileObjTest(unittest.TestCase):
 		expectedFileContent += "MyRegexp\n"
 		expectedFileContent += ""
 		self.assertEqual(newTf.getStr(), expectedFileContent)
+
+	def test_strSubDoubleFile(self):
+		newFile0Name = "tmp0"
+		newFile1Name = "tmp1"
+		tf = TextFileObj(path=self.subReadFilePath)
+		newTf0 = tf.copy(name=newFile0Name, father=self.testDir)
+		newTf1 = tf.copy(name=newFile1Name, father=self.testDir)
+		expectedOriginalFileContent  = "Sample File\n"
+		expectedOriginalFileContent += "\n"
+		expectedOriginalFileContent += "For Regexp For Regexp For Regexp\n"
+		expectedOriginalFileContent += "\n"
+		expectedOriginalFileContent += "For Regexp\n"
+		expectedOriginalFileContent += "\n"
+		expectedOriginalFileContent += "MyRegexp\n"
+		expectedOriginalFileContent += ""
+		self.assertEqual(newTf0.getStr(), expectedOriginalFileContent)
+		self.assertEqual(newTf1.getStr(), expectedOriginalFileContent)
+		newTf1.strSub(findStr="Sample",replaceStr="Example")
+		expectedFileContent = "Example File\n"
+		expectedFileContent += "\n"
+		expectedFileContent += "For Regexp For Regexp For Regexp\n"
+		expectedFileContent += "\n"
+		expectedFileContent += "For Regexp\n"
+		expectedFileContent += "\n"
+		expectedFileContent += "MyRegexp\n"
+		expectedFileContent += ""
+		self.assertEqual(newTf0.getStr(), expectedOriginalFileContent)
+		self.assertEqual(newTf1.getStr(), expectedFileContent)
