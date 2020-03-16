@@ -9,7 +9,7 @@ import unittest
 import os
 import sys
 import shutil
-sys.path.append(os.path.realpath("../src/fileTypes"))
+sys.path.append(os.path.realpath("../pytomation/fileTypes"))
 from DirFileObj import DirFileObj
 from TextFileObj import TextFileObj
 
