@@ -10,7 +10,7 @@
 
 import os
 import copy
-from BaseFileObj import BaseFileObj
+from pytomation.fileTypes.BaseFileObj import BaseFileObj
 
 class TextFileObj(BaseFileObj):
 
@@ -58,7 +58,7 @@ class TextFileObj(BaseFileObj):
 		with open(self.path) as file:
 			fileLine = file.readline()
 			while fileLine:
-				self.__lineList.append(fileLine.strip())
+				self.__lineList.append(fileLine.strip("\n"))
 				fileLine = file.readline()
 
 	## Private _copyFile method.

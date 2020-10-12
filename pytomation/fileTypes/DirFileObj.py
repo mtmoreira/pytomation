@@ -10,8 +10,8 @@
 
 import os
 import shutil
-from BaseFileObj import BaseFileObj
-from TextFileObj import TextFileObj
+from pytomation.fileTypes.BaseFileObj import BaseFileObj
+from pytomation.fileTypes.TextFileObj import TextFileObj
 
 class DirFileObj(BaseFileObj):
 
